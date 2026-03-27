@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRef } from "react";
 
 export default function MemberAdd() {
-
+  const nameRef = useRef<HTMLInputElement>(null);
   const [member_name, setMemberName] = useState("");
   const [shinsei, setShinsei] = useState("");
   const [birthday, setBirthday] = useState("");
@@ -19,6 +20,7 @@ export default function MemberAdd() {
     teams: "",
     birthday:"",
   });
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     fetch("https://swcbbl.com/nxphp/getPart.php")
@@ -40,7 +42,7 @@ export default function MemberAdd() {
       .then(data => setTeams(data));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const newErrors: any = {};
 
     if (!shinsei) newErrors.shinsei = "申請者を入力してください";
@@ -52,9 +54,55 @@ export default function MemberAdd() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) return;
+    setMessage("");
 
-    // OK
-    alert("登録OK！");
+    try {
+      const res = await fetch("https://swcbbl.com/nxphp/insertMember.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          shinsei,
+          member_name,
+          partno: selectedPart,
+          teamno: selectedTeam,
+          birthday,
+          hosoku
+        })
+      });
+
+      const result = await res.json();
+
+      if (result.status === "ok") {
+        setMessage("登録しました！");
+
+        // フォーカス戻す
+        nameRef.current?.focus();
+        // スクロール
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        setShinsei(shinsei);
+        setMemberName("");
+        setSelectedPart("");
+        setSelectedTeam("");
+        setBirthday("");
+        setHosoku("");
+        setTeams([]);
+      }
+      else {
+        alert("エラー：" + result.message);
+        setMessage(result.message);
+        // フォーカス戻す
+        nameRef.current?.focus();
+        // スクロール
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert("通信エラー");
+    }
   };
 
   return (
@@ -62,11 +110,24 @@ export default function MemberAdd() {
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-5">
 
         <h1 className="text-xl font-bold text-center">選手追加登録</h1>
-
+        <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm space-y-1">
+          <p>下記項目を入力してください。</p>
+          <p>試合当日に登録をしても出場することはできません。</p>
+          <p>試合前日までに追加登録をしてください。</p>
+          <p className="text-xs text-gray-600">
+            ※補足：学生の場合は学校名を、外国籍の場合は国名を、社会人連盟に所属している場合は、所属チーム名を記入してください
+          </p>
+        </div>
+        {message && (
+          <div className="bg-green-100 text-green-700 p-2 rounded text-center">
+            {message}
+          </div>
+        )}
         {/* 申請者 */}
         <div>
           <label className="text-sm text-gray-600">申請者</label>
           <input
+            ref={nameRef}
             name="shinsei"
             value={shinsei}
             onChange={(e) => {
