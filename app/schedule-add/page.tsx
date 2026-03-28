@@ -110,7 +110,7 @@ export default function MemberAdd() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-lg p-6 space-y-5">
 
-        <h1 className="text-xl font-bold text-center">選手追加登録</h1>
+        <h1 className="text-xl font-bold text-center">日程調整依頼</h1>
         <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm space-y-1">
           <p>下記項目を入力してください。</p>
           <p>試合当日に登録をしても出場することはできません。</p>
