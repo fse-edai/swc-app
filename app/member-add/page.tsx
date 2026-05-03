@@ -114,7 +114,7 @@ export default function MemberAdd() {
         <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm space-y-1">
           <p>下記項目を入力してください。</p>
           <p>試合当日に登録をしても出場することはできません。</p>
-          <p>試合前日までに追加登録をしてください。</p>
+          <p>試合日１週間前までに追加登録をしてください。</p>
           <p className="text-xs text-gray-600">
             ※補足：学生の場合は学校名を、外国籍の場合は国名を、社会人連盟に所属している場合は、所属チーム名を記入してください
           </p>

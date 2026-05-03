@@ -3,22 +3,22 @@
 import { useEffect, useState } from "react";
 import { useRef } from "react";
 
-export default function MemberAdd() {
+export default function ScheduleAdd() {
   const nameRef = useRef<HTMLInputElement>(null);
-  const [member_name, setMemberName] = useState("");
   const [shinsei, setShinsei] = useState("");
-  const [birthday, setBirthday] = useState("");
-  const [hosoku, setHosoku] = useState("");
+  const [reason, setReason] = useState("");
   const [parts, setParts] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<any[]>([]);
   const [selectedPart, setSelectedPart] = useState("");
   const [selectedTeam, setSelectedTeam] = useState("");
+  const [selectedSchedule, setSelectedSchedule] = useState("");
   const [errors, setErrors] = useState({
     shinsei: "",
-    member_name: "",
     parts: "",
     teams: "",
-    birthday:"",
+    schedule:"",
+    reason:"",
   });
   const [message, setMessage] = useState("");
 
@@ -26,6 +26,12 @@ export default function MemberAdd() {
     fetch("https://swcbbl.com/nxphp/getPart.php")
       .then(res => res.json())
       .then(data => setParts(data));
+  }, []);
+
+  useEffect(() => {
+    fetch("https://swcbbl.com/nxphp/getSchedule.php")
+      .then(res => res.json())
+      .then(data => setSchedules(data));
   }, []);
 
   const handlePartChange = (e: any) => {
@@ -46,18 +52,18 @@ export default function MemberAdd() {
     const newErrors: any = {};
 
     if (!shinsei) newErrors.shinsei = "申請者を入力してください";
-    if (!member_name) newErrors.member_name = "選手名を入力してください";
     if (!selectedPart) newErrors.parts = "部を選択してください";
     if (!selectedTeam) newErrors.teams = "チームを選択してください";
-    if (!birthday) newErrors.birthday = "誕生日を入力してください";
+    if (!selectedSchedule) newErrors.schedule = "申請日を選択してください";
+    if (!reason) newErrors.reason = "理由を入力してください";
 
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length > 0) return;
-    if (!confirm("登録してよろしいですか？")) return;
+    if (!confirm("申請してよろしいですか？")) return;
     setMessage("");
 
-    try {
+    /* try {
       const res = await fetch("https://swcbbl.com/nxphp/insertMember.php", {
         method: "POST",
         headers: {
@@ -71,7 +77,7 @@ export default function MemberAdd() {
           birthday,
           hosoku
         })
-      });
+      }); 
 
       const result = await res.json();
 
@@ -103,7 +109,7 @@ export default function MemberAdd() {
     } catch (err) {
       console.error(err);
       alert("通信エラー");
-    }
+    }*/
   };
 
   return (
@@ -113,11 +119,7 @@ export default function MemberAdd() {
         <h1 className="text-xl font-bold text-center">日程調整依頼</h1>
         <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-lg text-sm space-y-1">
           <p>下記項目を入力してください。</p>
-          <p>試合当日に登録をしても出場することはできません。</p>
-          <p>試合前日までに追加登録をしてください。</p>
-          <p className="text-xs text-gray-600">
-            ※補足：学生の場合は学校名を、外国籍の場合は国名を、社会人連盟に所属している場合は、所属チーム名を記入してください
-          </p>
+          <p>※依頼回数は各チーム３回までです。</p>
         </div>
         {message && (
           <div className="bg-green-100 text-green-700 p-2 rounded text-center">
@@ -151,7 +153,7 @@ export default function MemberAdd() {
             name="partno"
             value={selectedPart}
             onChange={(e) => {
-              handlePartChange(e); // ←これ使う
+              handlePartChange(e);
               setErrors({ ...errors, parts: "" });
             }}
             className={`w-full p-3 border rounded-lg ${
@@ -199,50 +201,49 @@ export default function MemberAdd() {
           )}
         </div>
 
-        {/* 名前 */}
+        {/* 申請日 */}
         <div>
-          <label className="text-sm text-gray-600">選手名</label>
-          <input
-            value={member_name}
+          <label className="text-sm text-gray-600">申請日</label>
+          <select
+            name="schedule"
+            value={selectedSchedule}
             onChange={(e) => {
-              setMemberName(e.target.value);
-              setErrors({ ...errors, member_name: "" });
+              setSelectedSchedule(e.target.value);
+              setErrors({ ...errors, schedule: "" });
             }}
-            className={`w-full mt-1 p-3 border rounded-lg ${
-              errors.member_name ? "border-red-500" : ""
+            className={`w-full p-3 border rounded-lg ${
+              errors.schedule ? "border-red-500" : ""
             }`}
-          />
-          {errors.member_name && (
-            <p className="text-red-500 text-sm mt-1">{errors.member_name}</p>
+          >
+            <option value="">選択してください</option>
+            {schedules.map((schedule: any) => (
+              <option key={schedule.id} value={schedule.id}>
+                {schedule.date}
+              </option>
+            ))}
+          </select>
+          {errors.schedule && (
+            <p className="text-red-500 text-sm mt-1">{errors.schedule}</p>
           )}
         </div>
 
-        {/* 生年月日 */}
+        {/* 理由 */}
         <div>
-          <label className="text-sm text-gray-600">生年月日</label>
+          <label className="text-sm text-gray-600">理由</label>
           <input
-            type="date"
-            value={birthday}
+            name="reason"
+            value={reason}
             onChange={(e) => {
-              setBirthday(e.target.value);
-              setErrors({ ...errors, birthday: "" });
+              setReason(e.target.value);
+              setErrors({ ...errors, reason: "" });
             }}
-            className={`w-full mt-1 p-3 border rounded-lg ${
-              errors.birthday ? "border-red-500" : ""
+            className={`w-full p-2 border rounded ${
+              errors.reason ? "border-red-500" : "border-gray-300"
             }`}
           />
-          {errors.birthday && (
-            <p className="text-red-500 text-sm mt-1">{errors.birthday}</p>
+          {errors.reason && (
+            <p className="text-red-500 text-sm mt-1">{errors.reason}</p>
           )}
-        </div>
-
-        {/* 補足 */}
-        <div>
-          <label className="text-sm text-gray-600">補足(大学名/国籍等/チーム名)</label>
-          <input
-            name="hosoku"
-            className="w-full mt-1 p-3 border rounded-lg focus:ring-2 focus:ring-blue-400 outline-none"
-          />
         </div>
 
         {/* ボタン */}
@@ -250,7 +251,7 @@ export default function MemberAdd() {
           onClick={handleSubmit}
           className="w-full bg-blue-500 text-white p-3 rounded-lg font-bold hover:bg-blue-600"
         >
-          登録する
+          申請する
         </button>
 
       </div>
